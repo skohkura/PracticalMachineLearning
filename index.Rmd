@@ -33,7 +33,7 @@ training <- training[,-c(1:7)]
 
 #Building the Model
 
-Random forests tend to perform very well and given how the problem involves many variables and the fact that we want to predict classes, seems to be a great fit. A random forest with 100 decision trees will be used as our algorithm.
+Random forests tend to be one of the most accurate machine learning algorithms. Given the nature of the problem, predicting labels from a bunch of different features, the random forest algorithm seems to be a good solution. It will automatically choose the best features out of the big pool of variables, and decision trees make a lot of sense for a label-prediction problem.
 
 **5-fold cross validation** will be used to estimate the accuracy of the algorithm without touching the test set. **Out of sample error** can be estimated as 1-accuracy. Thus, the out-of-sample error can also be estimated by cross validation.
 
@@ -46,4 +46,13 @@ modFit <- train(classe~., data=training, method="rf", ntree=100, trControl=train
 modFit$finalModel
 ```
 
-As seen above, the out of bag error rate is 0.52%. The confusion matrix shows low classification error rates across the board. Thus, the model has performed quite well.
+As seen above, the out of bag error rate is 0.52%. The confusion matrix shows low classification error rates across the board. Thus, we can expect the model to do quite well on the test set as well.
+
+#Predicting Test Set Labels
+
+Finally, we use the model to predict the test set labels.
+
+```{r}
+predict(modFit, testing)
+```
+

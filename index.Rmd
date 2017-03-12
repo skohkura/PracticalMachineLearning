@@ -1,0 +1,49 @@
+---
+title: "PracticalMachineLearning"
+author: "Kevin Ohkura"
+date: "Saturday, March 11, 2017"
+output: html_document
+---
+
+#Overview
+
+The goal of this project is to build a model that predicts the manner in which a weight lifting exercise is done based on data collected from accelerometers attached to various parts of the body of the person doing the exercises.
+
+#Data Preprocessing
+
+The data is split into a [training set](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv) and [test set](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv) which can be downloaded from their respective links.
+
+```{r}
+training <- read.csv("pml-training.csv", na.strings=c("NA", "", "#DIV/0!"))
+testing <- read.csv("pml-testing.csv", na.strings=c("NA", "", "#DIV/0!"))
+dimtrain <- dim(training)
+```
+
+The training set contains `r dimtrain[1]` observations and `r dimtrain[2]` variables. The variable "classe" will serve as labels that we want to predict for the test set. According to the [source of the data](http://groupware.les.inf.puc-rio.br/har), "Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E)." Using accelerometer data, we want to predict which of these classes the observed action belongs to.
+
+The training data contains variables that are made up completely of missing data. Some variables represent information that have nothing to do with the accelerometer measurements (such as the name of the participant or the timestamp). Both types of variables will not be considered by the model and should be removed.
+
+```{r}
+#remove all NA variables
+training <-training[,colSums(is.na(training)) == 0]
+
+#remove variables irrelevant to accelerometer measurements
+training <- training[,-c(1:7)]
+```
+
+#Building the Model
+
+Random forests tend to perform very well and given how the problem involves many variables and the fact that we want to predict classes, seems to be a great fit. A random forest with 100 decision trees will be used as our algorithm.
+
+**5-fold cross validation** will be used to estimate the accuracy of the algorithm without touching the test set. **Out of sample error** can be estimated as 1-accuracy. Thus, the out-of-sample error can also be estimated by cross validation.
+
+```{r, message=FALSE}
+library(caret)
+
+set.seed(777)
+modFit <- train(classe~., data=training, method="rf", ntree=100, trControl=trainControl(method="cv", number=5))
+
+modFit$finalModel
+```
+
+As seen above, the out of bag error rate is 0.52%. The confusion matrix shows low classification error rates across the board. Thus, the model has performed quite well.
